@@ -4,8 +4,9 @@ var readline = require('readline');
 
 const mongoose = require('mongoose');
 
-
 var express = require('express');
+
+var ejs = require('ejs');
 
 
 // *************************************************
@@ -27,12 +28,30 @@ app.get('/', function(req, res) {
 
 app.get('/ajax/order', function(req, res){
     
+        
+        var ret = {
+            status: false,
+        }
+        res.send(JSON.stringify(ret));
+   
+    return;
 
     orderProductById(req.param("id"), (output) => {
-        res.send(output);
+
+        var ret = {
+            status: true,
+            output
+        }
+        res.send(JSON.stringify(ret));
     });
     
     
+});
+
+app.get('/signup/login', function(req, res){
+    
+    res.render('pages/signup');
+
 });
    
 
@@ -56,6 +75,14 @@ var productSchema = new mongoose.Schema({
     "orders_counter": Number
 });
 var Product = mongoose.model('Product', productSchema);
+
+
+var userSchema = new mongoose.Schema({
+    "username": String,
+    "password": String,
+});
+
+var User = mongoose.model('User', userSchema);
 
 
 function loadProducts(callback) {

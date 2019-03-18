@@ -1,0 +1,77 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</head>
+
+<body>
+    Je suis un template EJS avec <%= products.length %> products
+
+    <h1>Products</h1>
+
+    <table>
+        <% products.forEach(function(product) { %>
+        <tr>
+            <td><%= product.id %></td>
+            <td><%= product.name %></td>
+            <td><%= product.EUR_price %></td>
+            <td><%= product.orders_counter %></td>
+            <td><input type="button" class="order" data-id="<%= product.id %>" value="Order" /></td>
+        </tr> 
+        <% });%>
+    </table>
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLongTitle">Connection</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <script>
+    
+    $(document).ready(function() {
+        $('input.order').on('click',function() {
+            var id = $(this).data('id');
+
+            $.ajax('/ajax/order?id=' + id,{
+                success: function(data) {
+                    if(data.status) {
+                        alert(data.output);
+                    } else {
+                        $.ajax('/signup/login',{
+                            success: function(html) {
+                                $('#myModal .modal-body').html(html);
+                                $('#myModal').modal();
+                            }
+                        });
+
+                    }
+                },
+                error: function(jqxhr,statusText, errorThrown) {
+                    alert("Error " + statusText + " " + errorThrown);
+                }
+            })
+        });
+    })
+    </script>
+</body>
+</html>
