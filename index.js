@@ -39,6 +39,15 @@ function loadProducts(callback) {
 
 }
 
+function saveProducts(products) {
+    fs.writeFile('./products.json',JSON.stringify(products),(err) => {
+        if(err) {
+            return console.log(err);
+        }
+        console.log('Save Successul');
+    });
+}
+
 function getAllProducts() {
     console.log("Bienvenue. Voici les produits disponibles :");
     loadProducts((products) => {
@@ -48,7 +57,24 @@ function getAllProducts() {
     });
 }
 
+function orderProductById(id) {
+    loadProducts((products) => {
+        products.forEach(function(product,index) {
+            if(product.id != id) {
+                return;
+            }
+            product.orders_counter++;
+            products[index] = product;
+        });
+
+        saveProducts(products);
+    });
+}
+
 getAllProducts();
+
+orderProductById("b547845ca9edc");
+
 
 /*
 fs.readFile("./products.json",(err,data) => {
