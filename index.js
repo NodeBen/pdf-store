@@ -2,6 +2,8 @@ var products = require('./products.json');
 
 var fs = require('fs');
 
+var readline = require('readline');
+
 function loadProducts(callback) {
 
     fs.open("./products.json",'r',(err,fd) => {
@@ -48,33 +50,70 @@ function saveProducts(products) {
     });
 }
 
-function getAllProducts() {
+function getAllProducts(callback) {
+    
     console.log("Bienvenue. Voici les produits disponibles :");
+    
     loadProducts((products) => {
+
         products.forEach(function(product) {
             console.log(`${product.id} - ${product.name} / ${product.EUR_price} / ${product.orders_counter}`);
         });
+
+        callback();
     });
 }
 
 function orderProductById(id) {
     loadProducts((products) => {
+
+        var wantedProduct;
         products.forEach(function(product,index) {
             if(product.id != id) {
                 return;
             }
+            wantedProduct = product;
             product.orders_counter++;
             products[index] = product;
         });
 
-        saveProducts(products);
+        if(!wantedProduct) {
+            return console.log(`Product [${id}] not found`);
+        }
+        saveProducts(products); 
+
+        console.log(`Commande terminée. voici votre fichier: ${wantedProduct.file_link}`)
     });
 }
 
-getAllProducts();
+function askProduct() {
 
-orderProductById("b547845ca9edc");
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
 
+    rl.question('i want product [id]', (answer) => {
+
+        answer.split('[');
+        var match = answer.match(/^i want product \[(.*)\]$/);
+        if(!match) {
+            console.log('Invalid command');
+        }
+
+        orderProductById(match[1]);
+    
+        rl.close();
+    });
+}
+
+
+getAllProducts(askProduct);
+
+// Test not found :
+//orderProductById("b547845ca9edcd");
+// Test found 
+//orderProductById("b547845ca9edc");
 
 /*
 fs.readFile("./products.json",(err,data) => {
