@@ -93,7 +93,7 @@ function askProduct() {
         output: process.stdout
     });
 
-    rl.question('i want product [id]', (answer) => {
+    rl.question('i want product [id]\n', (answer) => {
 
         answer.split('[');
         var match = answer.match(/^i want product \[(.*)\]$/);
