@@ -1,4 +1,3 @@
-var products = require('./products.json');
 
 var fs = require('fs');
 
@@ -109,27 +108,10 @@ function askProduct() {
     });
 }
 
-
-getAllProducts(askProduct);
-
 // Test not found :
 //orderProductById("b547845ca9edcd");
+
 // Test found 
 //orderProductById("b547845ca9edc");
 
-/*
-fs.readFile("./products.json",(err,data) => {
-
-    if(err) {
-        throw err;
-    }
-
-    try {
-        var products = JSON.parse(data.toString());
-    } catch(e) {
-        throw e;
-    }
-
-    console.log(products[0]);
-});
-*/
+getAllProducts(askProduct);
