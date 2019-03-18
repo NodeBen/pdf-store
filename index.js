@@ -42,7 +42,7 @@ function loadProducts(callback) {
 }
 
 function saveProducts(products) {
-    fs.writeFile('./products.json',JSON.stringify(products),(err) => {
+    fs.writeFile('./products.json',JSON.stringify(products,null,4),(err) => {
         if(err) {
             return console.log(err);
         }
@@ -69,6 +69,8 @@ function orderProductById(id) {
 
         var wantedProduct;
         products.forEach(function(product,index) {
+
+            // Skip
             if(product.id != id) {
                 return;
             }
@@ -98,7 +100,7 @@ function askProduct() {
         answer.split('[');
         var match = answer.match(/^i want product \[(.*)\]$/);
         if(!match) {
-            console.log('Invalid command');
+            return console.log(`Invalid command: ${answer}`);
         }
 
         orderProductById(match[1]);

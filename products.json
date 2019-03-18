@@ -1,1 +1,32 @@
-[{"id":"a4578fdec5c","name":"First Product","description":"This is a wonderfull product","USD_price":12.99,"EUR_price":10.99,"file_link":"http://www.mypdf.com/download/a4578fdec5c","creation_date":"2018-02-25","orders_counter":19},{"id":"b547845ca9edc","name":"Second Product","description":"This is another product","USD_price":18.99,"EUR_price":15.99,"file_link":"http://www.mypdf.com/download/b547845ca9edc","creation_date":"2018-02-28","orders_counter":5},{"id":"aa","name":"Easy Product","description":"This is another product","USD_price":1.99,"EUR_price":1.5,"file_link":"http://www.mypdf.com/download/aa","creation_date":"2018-03-12","orders_counter":8}]
+[
+    {
+        "id": "a4578fdec5c",
+        "name": "First Product",
+        "description": "This is a wonderfull product",
+        "USD_price": 12.99,
+        "EUR_price": 10.99,
+        "file_link": "http://www.mypdf.com/download/a4578fdec5c",
+        "creation_date": "2018-02-25",
+        "orders_counter": 19
+    },
+    {
+        "id": "b547845ca9edc",
+        "name": "Second Product",
+        "description": "This is another product",
+        "USD_price": 18.99,
+        "EUR_price": 15.99,
+        "file_link": "http://www.mypdf.com/download/b547845ca9edc",
+        "creation_date": "2018-02-28",
+        "orders_counter": 5
+    },
+    {
+        "id": "aa",
+        "name": "Easy Product",
+        "description": "This is another product",
+        "USD_price": 1.99,
+        "EUR_price": 1.5,
+        "file_link": "http://www.mypdf.com/download/aa",
+        "creation_date": "2018-03-12",
+        "orders_counter": 10
+    }
+]
