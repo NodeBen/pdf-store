@@ -6,6 +6,8 @@ var app = express();
 
 app.set('view engine', 'ejs');
 
+app.use(express.static('public'));
+
 app.get('/', function(req, res) {
 
     loadProducts((products) => {
@@ -13,6 +15,17 @@ app.get('/', function(req, res) {
     });
     
 });
+
+app.get('/ajax/order', function(req, res){
+    
+
+    orderProductById(req.param("id"), (output) => {
+        res.send(output);
+    });
+    
+    
+});
+   
 
 app.listen(8080);
 
@@ -92,9 +105,10 @@ function getAllProducts(callback) {
     });
 }
 
-function orderProductById(id) {
+function orderProductById(id, outputCallback) {
+    
     loadProducts((products) => {
-
+        
         var wantedProduct;
         products.forEach(function(product,index) {
 
@@ -108,11 +122,21 @@ function orderProductById(id) {
         });
 
         if(!wantedProduct) {
-            return console.log(`Product [${id}] not found`);
+            var errString = `Product [${id}] not found` 
+            if(outputCallback) {
+                outputCallback(errString);
+            } else {
+                return console.log(errString);
+            }
         }
         saveProducts(products); 
 
-        console.log(`Commande terminée. voici votre fichier: ${wantedProduct.file_link}`)
+        var successString = `Commande terminée. voici votre fichier: ${wantedProduct.file_link}`;
+        if(outputCallback) {
+            outputCallback(successString);
+        } else {
+            console.log(successString);
+        }
     });
 }
 
