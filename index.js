@@ -1,7 +1,16 @@
+var fs = require('fs');
+
+var readline = require('readline');
+
+const mongoose = require('mongoose');
 
 
 var express = require('express');
 
+
+// *************************************************
+//          EXPRESS
+// *************************************************
 var app = express();
 
 app.set('view engine', 'ejs');
@@ -34,61 +43,27 @@ console.log('8080 is the magic port');
 
 
 
+mongoose.connect('mongodb://localhost:27017/test', {useNewUrlParser: true});
 
+var productSchema = new mongoose.Schema({
+    "id": String,
+    "name": String,
+    "description": String,
+    "USD_price": Number,
+    "EUR_price": Number,
+    "file_link": String,
+    "creation_date": Date,
+    "orders_counter": Number
+});
+var Product = mongoose.model('Product', productSchema);
 
-
-
-
-
-
-var fs = require('fs');
-
-var readline = require('readline');
 
 function loadProducts(callback) {
 
-    fs.open("./products.json",'r',(err,fd) => {
-        fs.fstat(fd, function(err, stats) {
-            
-            if(err) {
-                console.log(err);
-                return;
-            }
-
-            var buffer = new Buffer(stats.size);
-            
-            fs.read(fd,buffer,0,stats.size,null,(err,byteReads, buffer) => {
-            
-                if(err) {
-                    console.log(err);
-                    return;
-                }
-                var json = buffer.toString();
-
-                try {
-                    var products = JSON.parse(json);
-                } catch(e) {
-                    console.log(e);
-                    return;
-                }
-
-                callback(products);
-            
-            });
-        });
-
-        
-    })
-
-}
-
-function saveProducts(products) {
-    fs.writeFile('./products.json',JSON.stringify(products,null,4),(err) => {
-        if(err) {
-            return console.log(err);
-        }
-        console.log('Save Successul');
+    Product.find((err,products) => {
+        callback(products);
     });
+
 }
 
 function getAllProducts(callback) {
@@ -118,6 +93,9 @@ function orderProductById(id, outputCallback) {
             }
             wantedProduct = product;
             product.orders_counter++;
+            
+            product.save();
+
             products[index] = product;
         });
 
@@ -129,7 +107,6 @@ function orderProductById(id, outputCallback) {
                 return console.log(errString);
             }
         }
-        saveProducts(products); 
 
         var successString = `Commande terminée. voici votre fichier: ${wantedProduct.file_link}`;
         if(outputCallback) {
