@@ -14,6 +14,10 @@
 <body>
     Je suis un template EJS avec <%= products.length %> products
 
+    <% if(is_auth) { %>
+        <a href="/signup/logout">Logout</a>
+    <% } %>
+    
     <h1>Products</h1>
 
     <table>
@@ -53,10 +57,18 @@
             var id = $(this).data('id');
 
             $.ajax('/ajax/order?id=' + id,{
+                dataType:'json',
                 success: function(data) {
+                    console.log(data);
                     if(data.status) {
                         alert(data.output);
                     } else {
+                        alert("Error : missing data");
+                    }
+                },
+                error: function(jqxhr,statusText, errorThrown) {
+                    if(jqxhr.status == 401) {
+                        
                         $.ajax('/signup/login',{
                             success: function(html) {
                                 $('#myModal .modal-body').html(html);
@@ -64,10 +76,9 @@
                             }
                         });
 
+                    } else {
+                        alert("Error " + statusText + " " + errorThrown+ " " + jqxhr.status);
                     }
-                },
-                error: function(jqxhr,statusText, errorThrown) {
-                    alert("Error " + statusText + " " + errorThrown);
                 }
             })
         });
