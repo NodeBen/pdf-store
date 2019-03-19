@@ -12,26 +12,28 @@
 </head>
 
 <body>
-    Je suis un template EJS avec <%= products.length %> products
+        
+    <div class="container">
 
     <% if(is_auth) { %>
         <a href="/signup/logout">Logout</a>
     <% } %>
     
-    <h1>Products</h1>
+    <h1><%= products.length %> Products</h1>
 
-    <table>
-        <% products.forEach(function(product) { %>
-        <tr>
-            <td><%= product.id %></td>
-            <td><%= product.name %></td>
-            <td><%= product.EUR_price %></td>
-            <td><%= product.orders_counter %></td>
-            <td><input type="button" class="order" data-id="<%= product.id %>" value="Order" /></td>
-        </tr> 
-        <% });%>
-    </table>
-
+        <table class="table">
+            <% products.forEach(function(product) { %>
+            <tr>
+                <td><%= product.id %></td>
+                <td><%= product.name %></td>
+                <td><%= product.EUR_price %></td>
+                <td><%= product.orders_counter %></td>
+                <td><input type="button" class="order" data-id="<%= product.id %>" value="Order" /></td>
+            </tr> 
+            <% });%>
+        </table>
+    
+    </div>
 
     <!-- Modal -->
     <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
