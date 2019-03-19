@@ -27,6 +27,20 @@ app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
+var authMiddleware = function(req, res, next) {
+
+    if(!req.session.auth) { 
+         
+        var ret = {
+            status: false,
+        }
+        res.statusCode = 401;
+        res.send(JSON.stringify(ret));
+        return;
+    }
+    next();
+}
+
 app.get('/', function(req, res) {
 
     productManager.loadProducts((products) => {
@@ -35,16 +49,7 @@ app.get('/', function(req, res) {
     
 });
 
-app.get('/ajax/order', function(req, res){
-    
-    if(!req.session.auth) {    
-        var ret = {
-            status: false,
-        }
-        res.statusCode = 401;
-        res.send(JSON.stringify(ret));
-        return;
-    }
+app.get('/ajax/order', authMiddleware, function(req, res){
 
     productManager.orderProductById(req.param("id"), (err,output,product) => {
 
