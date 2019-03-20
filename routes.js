@@ -4,6 +4,10 @@ const ejs = require('ejs');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const stripe = require('stripe')('sk_test_SeuHn4WwG24hZiu4Xago1HzK00BHpBPB2g');
+
 const expressSession = require('express-session');
 const FileStore = require('session-file-store')(expressSession);
 
@@ -64,6 +68,58 @@ passport.use(new LocalStrategy(
 
     }
 ));
+passport.use(new FacebookStrategy({
+        clientID: '359928228195724',
+        clientSecret: 'ecd939fa15e1536d6b572fab2fa5d4ab',
+        callbackURL: "http://localhost:8080/auth/facebook/callback"
+    },
+    async function(accessToken, refreshToken, profile, cb) {
+
+        try {
+            
+            var user = await User.findOne({ facebookId: profile.id });
+        
+            if(!user) {
+                var user = new User();
+                user.username = profile.displayName;
+                user.password = null;
+                user.facebookId = profile.id;
+                await user.save();
+            }
+            
+            cb(null,user);
+
+        } catch(e) {
+            cb(e, null);
+        }
+    }
+));
+passport.use(new GoogleStrategy({
+        clientID: "844109183659-d8p5i028nerj2vo3on406u9mbtif6c1h.apps.googleusercontent.com",
+        clientSecret: "H_FUU4OjDa5b1p5Kfvwxij6S",
+        callbackURL: "http://localhost:8080/auth/google/callback"
+    },
+    async function(token, tokenSecret, profile, done) {
+        try {
+                
+            var user = await User.findOne({ googleId: profile.id });
+
+            if(!user) {
+                var user = new User();
+                user.username = profile.displayName;
+                user.password = null;
+                user.googleId = profile.id;
+                await user.save();
+            }
+            
+            done(null,user);
+
+        } catch(e) {
+
+            done(e, null);
+        }
+    }
+));
 
 passport.serializeUser(function(user, done) {
     done(null, user.id);
@@ -108,6 +164,34 @@ app.post('/signup/auth',function(req, res, next) {
     })(req,res,next);
 });
 
+// *************************
+//      FACEBOOK CONNECT
+// *************************
+app.get('/auth/facebook',
+  passport.authenticate('facebook'));
+
+app.get('/auth/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+  });
+
+// ******************************
+//    GOOGLE CONNECT
+// ******************************
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
+
+app.get('/auth/google/callback', 
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    res.redirect('/');
+  });
+
+  // *****************************
+  //        ROUTES
+  // *****************************
 function authMiddleware (req, res, next) {
 
     if (req.isAuthenticated()) {
@@ -210,6 +294,52 @@ app.get('/getUserProducts', authMiddleware, async function(req, res){
     }
     
 });
+
+app.post('/charge', async function(req, res) {
+
+    var productId = req.body.product_id;
+
+    var token = req.body.stripeToken;
+    var tokenType = req.body.stripeTokenType;
+    var email = req.body.stripeEmail;
+    
+    var product = await productManager.getProduct(productId);
+
+    if(!product) {
+        res.send("Product not found");
+        return;
+    }
+
+    stripe.customers.create({
+        email: email
+    }).then((customer) => {
+        
+        return stripe.customers.createSource(customer.id, {
+          source: token
+        });
+
+    }).then((source) => {
+
+        return stripe.charges.create({
+          amount: product.EUR_price * 100,
+          currency: 'eur',
+          customer: source.customer
+        });
+
+    }).then((charge) => {
+    
+        console.log('ok')
+        
+        res.send(`OK - You bought a ${product.name} for ${product.EUR_price}`);
+
+    }).catch((err) => {
+        // Deal with an error
+        console.log('err');
+        console.log(err)
+        res.send('An Error occur ' + err);
+    });
+
+})
 
 app.listen(8080);
 

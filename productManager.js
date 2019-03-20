@@ -13,7 +13,23 @@ loadProducts = function(callback) {
 
     };
 
+async function getProduct(id) {
+
+    var products = await Product.find();
     
+    var wantedProduct;
+
+    products.forEach(function(product,index) {
+
+        // Skip
+        if(product.id != id) {
+            return;
+        }
+        wantedProduct = product;
+    });
+    return wantedProduct;
+}   
+
 orderProductById = function(user, id, outputCallback) {
         
     loadProducts((products) => {
@@ -53,3 +69,4 @@ orderProductById = function(user, id, outputCallback) {
 
 exports.loadProducts = loadProducts;
 exports.orderProductById = orderProductById;
+exports.getProduct = getProduct;

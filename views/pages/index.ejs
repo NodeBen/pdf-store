@@ -29,6 +29,23 @@
                 <td><%= product.EUR_price %></td>
                 <td><%= product.orders_counter %></td>
                 <td><input type="button" class="order" data-id="<%= product.id %>" value="Order" /></td>
+                <td>
+                    <form action="/charge" method="POST">
+                        
+                        <input type="hidden" name="product_id" value="<%= product.id %>"/>
+
+                        <script
+                          src="https://checkout.stripe.com/checkout.js" class="stripe-button"
+                          data-key="pk_test_kGUeYcJ8w2Y9ZAddFEW4hpOZ00vPiGcEMj"
+                          data-amount="<%= product.EUR_price * 100 %>"
+                          data-name="<%= product.name %>"
+                          data-description=""
+                          data-image="https://stripe.com/img/documentation/checkout/marketplace.png"
+                          data-locale="auto"
+                          data-currency="eur">
+                        </script>
+                      </form>
+                 </td>
             </tr> 
             <% });%>
         </table>
@@ -56,6 +73,7 @@
           </div>
         </div>
     </div>
+
 
     <script>
     
