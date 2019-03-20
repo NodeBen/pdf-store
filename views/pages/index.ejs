@@ -15,11 +15,11 @@
         
     <div class="container">
 
-    <% if(is_auth) { %>
-        <a href="/signup/logout">Logout</a>
-    <% } %>
-    
-    <h1><%= products.length %> Products</h1>
+        <% if(is_auth) { %>
+            <a href="/signup/logout">Logout</a>
+        <% } %>
+        
+        <h1><%= products.length %> Products</h1>
 
         <table class="table">
             <% products.forEach(function(product) { %>
@@ -33,6 +33,11 @@
             <% });%>
         </table>
     
+        <ul>
+            <li><a href="/getUserOrders" target="_blank">getUserOrder</a></li>
+            <li><a href="/getUserProducts" target="_blank">getUserProducts</a></li>
+        </ul>
+        
     </div>
 
     <!-- Modal -->

@@ -5,8 +5,8 @@ var Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
 var orderSchema = new mongoose.Schema({
-    "product": ObjectId,
-    "user": ObjectId,
+    "product": { type: ObjectId, ref: 'Product' },
+    "user":  { type: ObjectId, ref: 'User' },
     "date": Date,
     "price": Number,
 });

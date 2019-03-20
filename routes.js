@@ -4,19 +4,31 @@ const ejs = require('ejs');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const expressSession = require('express-session');
+const FileStore = require('session-file-store')(expressSession);
 
 // ***************************************************
-// 
+//  LOAD MODELS
 // ***************************************************
 const Product = require('./model/product.js');
 const User = require('./model/user.js');
 const Order = require('./model/order.js');
 const productManager = require('./productManager.js');
+const OrderManager = require('./orderManager.js');
 
+// ***************************************************
+//      EXPRESS
+// ***************************************************
 var app = express();
 
 app.use(require('cookie-parser')());
-app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true })); 
+
+app.use(expressSession({
+    store: new FileStore({}),
+    secret: 'keyboard cat', 
+    resave: true, 
+    saveUninitialized: true })); 
+
 app.use( bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
@@ -25,7 +37,6 @@ app.use(express.static('public'));
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 
 // **********************************************
 //      PASSPORT
@@ -63,8 +74,6 @@ passport.deserializeUser(function(id, done) {
         done(err, user);
     });
 });
-
-
 
 // *************************************************
 //      ROUTES
@@ -159,47 +168,49 @@ function ajaxReturn(res,success,e) {
 
     res.send(JSON.stringify(ret));
 }
-/*
-app.post('/signup/auth', function(req, res){
 
-    try {
 
-        if(!req.body.username) {
-            throw 'Missing username';
-        }
+app.get('/getUserOrders', authMiddleware, function(req, res){
 
-        if(!req.body.password) {
-            throw 'Missing password';
-        }
-
-        User.findOne({username:req.body.username}, (err, user) => {
-
-            try {
-
-                if(err) {
-                    throw err;
-                }
-
-                if(!user) {
-                    throw 'User Not found';
-                }
-
-            } catch(e) {
-                return ajaxReturn(res,false,e);
+    new Promise(function(resolve, reject) {
+    
+        Order.find({user: req.user},(err,products) => {
+                
+            if(err) {
+                reject('Failed to find orders');
             }
-
-            req.session.auth = true;
-
-            return ajaxReturn(res,true,null);
+        
+            resolve(products);
 
         });
 
-    // req.session.auth = 1;
-    } catch(e) {
+    }).then((products) => {
+
+            res.send(JSON.stringify(products));
+
+    }).catch((err) => {
+
+            ajaxReturn(res,false,err);
+    });
+    
+});
+
+app.get('/getUserProducts', authMiddleware, async function(req, res){
+
+    try {
+
+        var products = await OrderManager.getUserProducts(req.user);
+
+        res.send(JSON.stringify(products));
+        
+        return;
+
+    } catch(e) {console.log(e);
         return ajaxReturn(res,false,e);
     }
+    
 });
-*/
+
 app.listen(8080);
 
 console.log('8080 is the magic port');
