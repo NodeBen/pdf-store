@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const Product = require("./model/product.js");
 
+const OrderManager = require("./orderManager.js");
 
 loadProducts = function(callback) {
 
@@ -13,7 +14,7 @@ loadProducts = function(callback) {
     };
 
     
-orderProductById = function(id, outputCallback) {
+orderProductById = function(user, id, outputCallback) {
         
     loadProducts((products) => {
         
@@ -29,6 +30,7 @@ orderProductById = function(id, outputCallback) {
             
             product.save();
 
+
             products[index] = product;
         });
 
@@ -38,6 +40,8 @@ orderProductById = function(id, outputCallback) {
             
             outputCallback(errString);
         }
+
+        OrderManager.addOrder(user, wantedProduct);
 
         var successString = `Commande terminée. voici votre fichier: ${wantedProduct.file_link}`;
         

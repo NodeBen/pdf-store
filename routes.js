@@ -1,57 +1,117 @@
 
 const express = require('express');
 const ejs = require('ejs');
-const session = require('express-session');
 const bodyParser = require('body-parser');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
 
 // ***************************************************
 // 
 // ***************************************************
 const Product = require('./model/product.js');
 const User = require('./model/user.js');
+const Order = require('./model/order.js');
 const productManager = require('./productManager.js');
-
 
 var app = express();
 
-var sess = {
-    secret: 'keyboard cat',
-    cookie: {}
-}
-app.use(session(sess))
-
-app.use( bodyParser.json() ); 
-app.use( bodyParser.urlencoded({ extended: false }));
+app.use(require('cookie-parser')());
+app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true })); 
+app.use( bodyParser.urlencoded({ extended: true }));
 
 app.set('view engine', 'ejs');
 
 app.use(express.static('public'));
 
-var authMiddleware = function(req, res, next) {
+app.use(passport.initialize());
+app.use(passport.session());
 
-    if(!req.session.auth) { 
-         
-        var ret = {
-            status: false,
-        }
-        res.statusCode = 401;
-        res.send(JSON.stringify(ret));
-        return;
+
+// **********************************************
+//      PASSPORT
+// **********************************************
+passport.use(new LocalStrategy(
+    
+    function(username, password, done) {
+        
+        User.findOne({ username: username }, function (err, user) {
+            
+            if (err) { 
+                return done(err); 
+            }
+            
+            if (!user) { 
+                return done(null, false, { message: 'Invalid username.' }); 
+            }
+
+            if (!user.verifyPassword(password)) { 
+                return done(null, false, { message: 'Invalid password.' }); 
+            }
+            
+            return done(null, user);
+        });
+
     }
-    next();
-}
+));
 
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+    User.findById(id, function (err, user) {
+        done(err, user);
+    });
+});
+
+
+
+// *************************************************
+//      ROUTES
+// *************************************************
 app.get('/', function(req, res) {
 
     productManager.loadProducts((products) => {
-        res.render('pages/index',{products, is_auth: req.session.auth});
+        res.render('pages/index',{products, is_auth: req.user});
     });
     
 });
 
+
+app.post('/signup/auth',function(req, res, next) {
+    passport.authenticate('local', function(err, user, info) {
+        
+        if (err) { 
+            return next(err); 
+        }
+        
+        if (!user) { 
+            return ajaxReturn(res,false,info.message);
+        }
+        
+        req.logIn(user, function(err) {
+          if (err) { 
+              return next(err); 
+          }
+          return ajaxReturn(res,true, null);
+        });
+
+    })(req,res,next);
+});
+
+function authMiddleware (req, res, next) {
+
+    if (req.isAuthenticated()) {
+        return next()
+    }
+    
+    res.status(401).send('Login Error');
+
+}
+
 app.get('/ajax/order', authMiddleware, function(req, res){
 
-    productManager.orderProductById(req.param("id"), (err,output,product) => {
+    productManager.orderProductById(req.user, req.param("id"), (err,output,product) => {
 
         if(err) {
 
@@ -81,7 +141,8 @@ app.get('/signup/login', function(req, res){
    
 app.get('/signup/logout', function(req, res){
     
-    req.session.auth = false;
+    req.logout();
+
     res.redirect('/', 302);
 
 });
@@ -98,7 +159,7 @@ function ajaxReturn(res,success,e) {
 
     res.send(JSON.stringify(ret));
 }
-
+/*
 app.post('/signup/auth', function(req, res){
 
     try {
@@ -138,7 +199,7 @@ app.post('/signup/auth', function(req, res){
         return ajaxReturn(res,false,e);
     }
 });
-
+*/
 app.listen(8080);
 
 console.log('8080 is the magic port');
