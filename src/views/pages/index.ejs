@@ -15,10 +15,6 @@
         
     <div class="container">
 
-        <% if(is_auth) { %>
-            <a href="/signup/logout">Logout</a>
-        <% } %>
-        
         <h1><%= products.length %> Products</h1>
 
         <table class="table">
@@ -53,6 +49,11 @@
         <ul>
             <li><a href="/getUserOrders" target="_blank">getUserOrder</a></li>
             <li><a href="/getUserProducts" target="_blank">getUserProducts</a></li>
+
+            <% if(is_auth) { %>
+                <li><a href="/signup/logout">Logout</a></li>
+            <% } %>
+        
         </ul>
         
     </div>

@@ -8,8 +8,14 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const stripe = require('stripe')('sk_test_SeuHn4WwG24hZiu4Xago1HzK00BHpBPB2g');
 
+const helmet = require('helmet');
 const expressSession = require('express-session');
 const FileStore = require('session-file-store')(expressSession);
+
+const methodOverride = require('method-override');
+const restify = require('express-restify-mongoose')
+const router = express.Router();
+const mongoose = require("mongoose");
 
 // ***************************************************
 //  LOAD MODELS
@@ -26,7 +32,7 @@ const OrderManager = require('./orderManager.js');
 var app = express();
 
 app.use(require('cookie-parser')());
-
+app.use(helmet());
 app.use(expressSession({
     store: new FileStore({}),
     secret: 'keyboard cat', 
@@ -34,6 +40,8 @@ app.use(expressSession({
     saveUninitialized: true })); 
 
 app.use( bodyParser.urlencoded({ extended: true }));
+
+app.use(methodOverride())
 
 app.set('view engine', 'ejs');
 
@@ -342,10 +350,24 @@ app.post('/charge', async function(req, res) {
 
         let charge = data.charge;
 
+        function makeid(length) {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+          
+            for (var i = 0; i < length; i++)
+              text += possible.charAt(Math.floor(Math.random() * possible.length));
+          
+            return text;
+        }
+
+        var pwgen = null;
         if(!data.user) {
+
+            pwgen = makeid(16);
+
             var user = new User();
             user.username = email;
-            user.password = email;
+            user.setPassword(pwgen);
             user.save();
         } else {
             user = data.user;
@@ -359,9 +381,9 @@ app.post('/charge', async function(req, res) {
 
             console.log(string);
         });
-    
-        res.send(`OK - You bought "${product.name}" for ${product.EUR_price}`);
 
+        res.render('pages/success', {product,user,pwgen});
+        return;
     }).catch((err) => {
         // Deal with an error
         console.log('err');
@@ -371,6 +393,19 @@ app.post('/charge', async function(req, res) {
 
 })
 
+// *********************************************
+//  REsTIFY
+// *********************************************
+
+restify.serve(router, Product);
+  
+app.use(router);
+
+// ********************************************
+//    START
+// ********************************************
+
 app.listen(8080);
 
 console.log('8080 is the magic port');
+
