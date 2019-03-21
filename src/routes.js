@@ -1,4 +1,4 @@
-
+var path = require('path');
 const express = require('express');
 const ejs = require('ejs');
 const bodyParser = require('body-parser');
@@ -44,6 +44,7 @@ app.use( bodyParser.urlencoded({ extended: true }));
 app.use(methodOverride())
 
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, '/views'));
 
 app.use(express.static('public'));
 
@@ -146,7 +147,7 @@ app.get('/', async function(req, res) {
 
     var products = await productManager.loadProducts();
     
-    res.render('pages/index',{products, is_auth: req.user});
+    res.render('pages/index',{products, user: req.user});
     
 });
 

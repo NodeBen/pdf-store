@@ -15,8 +15,16 @@
         
     <div class="container">
 
-        <h1><%= products.length %> Products</h1>
-
+        <nav class="navbar navbar-light bg-light">
+            <span class="navbar-brand mb-0 h1"><h1><%= products.length %> Products</h1></span>
+            <% if(user) { %>
+                <ul class="navbar-nav ml-auto">
+                    Welcome <%= user.username %>
+                </ul>
+            <% } %>
+        </nav>        
+        
+        
         <table class="table">
             <% products.forEach(function(product) { %>
             <tr>
@@ -50,7 +58,7 @@
             <li><a href="/getUserOrders" target="_blank">getUserOrder</a></li>
             <li><a href="/getUserProducts" target="_blank">getUserProducts</a></li>
 
-            <% if(is_auth) { %>
+            <% if(user) { %>
                 <li><a href="/signup/logout">Logout</a></li>
             <% } %>
         
