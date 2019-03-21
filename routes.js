@@ -327,10 +327,37 @@ app.post('/charge', async function(req, res) {
         });
 
     }).then((charge) => {
+
+        return new Promise((resolve,reject) => {
+            // here create the user
+            var user = User.findOne({ username: email }, function(err,user) {
+                resolve({charge,user});
+            });
+        });
+
+    }).then((data) => {
+
+        let charge = data.charge;
+
+        if(!data.user) {
+            var user = new User();
+            user.username = email;
+            user.password = email;
+            user.save();
+        } else {
+            user = data.user;
+        }
+
+        productManager.orderProductById(user, productId, (err,string) => {
+            if(err) {
+                console.log(err);
+                return;
+            }
+
+            console.log(string);
+        });
     
-        console.log('ok')
-        
-        res.send(`OK - You bought a ${product.name} for ${product.EUR_price}`);
+        res.send(`OK - You bought "${product.name}" for ${product.EUR_price}`);
 
     }).catch((err) => {
         // Deal with an error

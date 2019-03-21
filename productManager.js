@@ -54,15 +54,18 @@ orderProductById = function(user, id, outputCallback) {
             
             var errString = `Product [${id}] not found` 
             
-            outputCallback(errString);
+            if(outputCallback) {
+                outputCallback(errString);
+            }
         }
 
         OrderManager.addOrder(user, wantedProduct);
 
         var successString = `Commande terminée. voici votre fichier: ${wantedProduct.file_link}`;
         
-        outputCallback(null,successString,wantedProduct);
-        
+        if(outputCallback) {
+            outputCallback(null,successString,wantedProduct);
+        }
     });
 
 }
