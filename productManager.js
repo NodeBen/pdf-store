@@ -5,13 +5,19 @@ const Product = require("./model/product.js");
 
 const OrderManager = require("./orderManager.js");
 
-loadProducts = function(callback) {
+loadProducts = function() {
 
+    return new Promise(function(resolve,reject) {
         Product.find((err,products) => {
-            callback(products);
+            if(err) {
+               return reject(err);
+            }
+            resolve(products);
         });
-
-    };
+    });
+}
+        
+    
 
 async function getProduct(id) {
 
@@ -19,55 +25,44 @@ async function getProduct(id) {
     
     var wantedProduct;
 
-    products.forEach(function(product,index) {
-
+    await products.forEach(function(product,index) {
         // Skip
         if(product.id != id) {
             return;
         }
         wantedProduct = product;
     });
+    
     return wantedProduct;
 }   
 
-orderProductById = function(user, id, outputCallback) {
-        
-    loadProducts((products) => {
-        
-        var wantedProduct;
-        products.forEach(function(product,index) {
+orderProductById = function(user, id) {
+    
+    if(!id) {
+        throw "Empty id";
+    }
 
-            // Skip
-            if(product.id != id) {
-                return;
+    return loadProducts().
+        then(async (products) => {
+        
+            var product = await getProduct(id);
+            if(!product) {
+                
+                var errString = `Product [${id}] not found` 
+                throw errString;
             }
-            wantedProduct = product;
+
             product.orders_counter++;
+
+            await product.save();
+
+            await OrderManager.addOrder(user, product);
+
+            var successString = `Commande terminée. voici votre fichier: ${product.file_link}`;
             
-            product.save();
-
-
-            products[index] = product;
+            return {successString,product};
         });
-
-        if(!wantedProduct) {
-            
-            var errString = `Product [${id}] not found` 
-            
-            if(outputCallback) {
-                outputCallback(errString);
-            }
-        }
-
-        OrderManager.addOrder(user, wantedProduct);
-
-        var successString = `Commande terminée. voici votre fichier: ${wantedProduct.file_link}`;
-        
-        if(outputCallback) {
-            outputCallback(null,successString,wantedProduct);
-        }
-    });
-
+    
 }
 
 exports.loadProducts = loadProducts;

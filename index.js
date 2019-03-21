@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 
 const productManager = require('./productManager.js');
 
+const User = require('./model/user.js');
+
 // *************************************************
 //          MONGO
 // *************************************************
@@ -18,42 +20,54 @@ const routes = require("./routes.js")
 
 function askProduct() {
 
-    const rl = readline.createInterface({
-        input: process.stdin,
-        output: process.stdout
-    });
-
-    rl.question('i want product [id]\n', (answer) => {
-
-        var match = answer.match(/^i want product \[(.*)\]$/);
-        if(!match) {
-            return console.log(`Invalid command: ${answer}`);
-        }
-
-        productManager.orderProductById(match[1],(err,successMessage) => {
-            
-            if(err) {
-                console.log("ERR " + err);
-                return;
-            }
-
-            console.log(successMessage);
+    new Promise((resolve, reject) => {
+    
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        
+        rl.question('i want product [id]\n', (answer) => {
+            rl.close();
+            resolve(answer);
         });
     
-        rl.close();
+    }).then(async (value) => {
+
+        var match = value.match(/^i want product \[(.*)\]$/);
+        if(!match) {
+            throw `Invalid command: ${value}`;
+        }
+        
+        // get a random user
+        var user = await User.findOne();
+
+        return productManager.orderProductById(user,match[1]);
+
+    }).then((data) => {
+    
+        console.log(`Product Id : ${data.product.id}`);
+        console.log(data.successString);
+
+    }).catch((e) => {
+
+        console.error(e);
+    
     });
 }
 
-getAllProducts = function(callback) {
+getAllProducts = async function() {
 
-    productManager.loadProducts((products) => {
+    return new Promise(async function(resolve,reject) {
 
+        var products = await productManager.loadProducts();
+        
         products.forEach(function(product) {
             console.log(`${product.id} - ${product.name} / ${product.EUR_price} / ${product.orders_counter}`);
         });
-
-        callback();
+        resolve();
     });
+
 };
 
 // Test not found :
@@ -64,5 +78,10 @@ getAllProducts = function(callback) {
 
 console.log("Bienvenue. Voici les produits disponibles :");
     
-getAllProducts(askProduct);
+getAllProducts()
+.then(() => {
+    askProduct();
+});
+
+
 

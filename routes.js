@@ -134,11 +134,11 @@ passport.deserializeUser(function(id, done) {
 // *************************************************
 //      ROUTES
 // *************************************************
-app.get('/', function(req, res) {
+app.get('/', async function(req, res) {
 
-    productManager.loadProducts((products) => {
-        res.render('pages/index',{products, is_auth: req.user});
-    });
+    var products = await productManager.loadProducts();
+    
+    res.render('pages/index',{products, is_auth: req.user});
     
 });
 
@@ -204,16 +204,11 @@ function authMiddleware (req, res, next) {
 
 app.get('/ajax/order', authMiddleware, function(req, res){
 
-    productManager.orderProductById(req.user, req.param("id"), (err,output,product) => {
+    productManager.orderProductById(req.user, req.param("id"))
+    .then((data) => {
 
-        if(err) {
-
-            var ret = {
-                status: false,
-            }
-            res.send(JSON.stringify(ret));
-            return;
-        }
+        let product = data.product;
+        let output = data.successString; 
 
         var ret = {
             status: true,
@@ -221,8 +216,16 @@ app.get('/ajax/order', authMiddleware, function(req, res){
             id: product.id
         }
         res.send(JSON.stringify(ret));
-    });
     
+    }).catch((e) => {
+    
+        var ret = {
+            status: false,
+        }
+        res.send(JSON.stringify(ret));
+        return;
+    
+    });
     
 });
 
